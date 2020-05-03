@@ -1,0 +1,3 @@
+     1 00000000 B90500                  mov cx, 5
+     2 00000003 90                      .L: nop
+     3 00000004 E2FD                       loop .L ;loop substract 1 from CX, and jump to offset in the operand if CX != 0
