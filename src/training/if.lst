@@ -1,0 +1,6 @@
+     1 00000000 83F803                  .Test: cmp ax, 3
+     2 00000003 7305                           jae .False
+     3 00000005 BB0200                  .True: mov bx, 2
+     4 00000008 EB03                           jmp .End
+     5 0000000A BB0100                  .False: mov bx, 1
+     6                                  .End:
