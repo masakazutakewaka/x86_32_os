@@ -1,0 +1,11 @@
+     1                                  entry:
+     2 00000000 EB58                           jmp ipl        ; Initial Program Loader;
+     3                                  
+     4                                       ; BPB(BIOS Parameter Block)
+     5 00000002 90<rept>                		   times 90 - ($ - $$) db 0x90  ; 0x90 -> NOP
+     6                                  
+     7                                  ipl: ; IPL
+     8 0000005A EBFE                           jmp $
+     9                                  
+    10 0000005C 00<rept>                       times 510 - ($ - $$) db 0x00
+    11 000001FE 55AA                           db 0x55, 0xAA
