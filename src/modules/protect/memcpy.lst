@@ -1,0 +1,32 @@
+     1                                  ; void memcpy(dist, src, size);
+     2                                  
+     3                                  memcpy:
+     4                                                      ; size
+     5                                  										; src
+     6                                  										; dist
+     7                                  										; EIP
+     8 00000000 6655                            push ebp     ; 0 -> EBP[0]
+     9 00000002 6689E5                  				mov ebp, esp  ; ----
+    10                                  
+    11                                        ; store registers
+    12 00000005 6651                    			  push ecx
+    13 00000007 6656                    				push esi
+    14 00000009 6657                    				push edi
+    15                                  
+    16                                  			; copy per byte
+    17 0000000B FC                      			  cld              ; CLear Direction flag. 0 means incremental
+    18 0000000C 66678B7D08              				mov edi, [ebp + 8]
+    19 00000011 66678B750C              				mov esi, [ebp + 12]
+    20 00000016 66678B4D10              				mov ecx, [ebp + 16]
+    21                                  
+    22 0000001B F3A4                    				rep movsb         ; while (*EDI++ = *ESI++);
+    23                                  
+    24                                        ; return registers
+    25 0000001D 665F                    			  pop edi
+    26 0000001F 665E                    				pop esi
+    27 00000021 6659                    				pop ecx
+    28                                  
+    29                                        ; discard stqckframe, and return to EIP
+    30 00000023 6689EC                  			  mov esp, ebp
+    31 00000026 665D                    				pop ebp
+    32 00000028 C3                      				ret
