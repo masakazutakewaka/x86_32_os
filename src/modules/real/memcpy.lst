@@ -1,0 +1,32 @@
+     1                                  ; void memcpy(dist, src, size);
+     2                                  
+     3                                  memcpy:
+     4                                                      ; size
+     5                                  										; src
+     6                                  										; dist
+     7                                  										; IP
+     8 00000000 55                              push bp     ; 0 -> BP[0]
+     9 00000001 89E5                    				mov bp, sp  ; ----
+    10                                  
+    11                                        ; store registers
+    12 00000003 51                      			  push cx
+    13 00000004 56                      				push si
+    14 00000005 57                      				push di
+    15                                  
+    16                                  			; copy per byte
+    17 00000006 FC                      			  cld              ; CLear Direction flag. 0 means incremental
+    18 00000007 8B7E04                  				mov di, [bp + 4]
+    19 0000000A 8B7606                  				mov si, [bp + 6]
+    20 0000000D 8B4E08                  				mov cx, [bp + 8]
+    21                                  
+    22 00000010 F3A4                    				rep movsb         ; while (*DI++ = *SI++);
+    23                                  
+    24                                        ; return registers
+    25 00000012 5F                      			  pop di
+    26 00000013 5E                      				pop si
+    27 00000014 59                      				pop cx
+    28                                  
+    29                                        ; discard stqckframe, and return to IP
+    30 00000015 89EC                    			  mov sp, bp
+    31 00000017 5D                      				pop bp
+    32 00000018 C3                      				ret
