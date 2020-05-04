@@ -1,0 +1,35 @@
+     1                                  ;int memcmp(src0, src1, size); if same, 0. if not, -1
+     2                                  
+     3                                  memcmp: 
+     4 00000000 55                               push bp
+     5 00000001 89E5                    				 mov bp, sp
+     6                                  
+     7 00000003 53                      				 push bx
+     8 00000004 51                      				 push cx
+     9 00000005 52                      				 push dx
+    10 00000006 56                      				 push si
+    11 00000007 57                      				 push di
+    12                                  
+    13                                        ; compare per byte
+    14 00000008 FC                      			  cld
+    15 00000009 8B7604                  			  mov si, [bp + 4]  ; src0
+    16 0000000C 8B7E06                  				mov di, [bp + 6]  ; src1
+    17 0000000F 8B4E08                  				mov cx, [bp + 8]  ; size
+    18                                  
+    19 00000012 F3A6                    				repe cmpsb        ; ZF == 0 if all same
+    20 00000014 7505                    				jnz .10F
+    21 00000016 B80000                  				mov ax, 0
+    22 00000019 EB03                    				jmp .10E
+    23                                  
+    24                                  .10F:
+    25 0000001B B8FFFF                          mov ax, -1
+    26                                  .10E:
+    27 0000001E 5F                      				pop di
+    28 0000001F 5E                      				pop si
+    29 00000020 5A                      				pop dx
+    30 00000021 59                      				pop cx
+    31 00000022 5B                      				pop bx
+    32                                  
+    33 00000023 89EC                    				mov sp, bp
+    34 00000025 5D                      				pop bp
+    35 00000026 C3                      				ret
