@@ -1,0 +1,134 @@
+     1                                         BOOT_LOAD equ 0x7c00         ; where boot probram is loaded
+     2                                  			 ORG BOOT_LOAD                ; tell assembla where this program is loaded
+     3                                  
+     4                                  
+     5                                  ;*********************************************************
+     6                                  ;               macro
+     7                                  ;*********************************************************
+     8                                  %include "../include/macro.s"
+     1                              <1> %macro cdecl 1-*.no-list
+     2                              <1>   %rep %0 -1 
+     3                              <1> 	  push %{-1:-1}      ; last arg
+     4                              <1> 		%rotate -1         ; rotate to right ->
+     5                              <1> 	%endrep
+     6                              <1> 	%rotate -1           ; return args to as it used be
+     7                              <1> 
+     8                              <1> 	call %1
+     9                              <1> 
+    10                              <1> 	%if 1 < %0
+    11                              <1> 		add sp, (__BITS__ >> 3) * (%0 - 1)     ;dump stqck (16(2byte) or 32(4byte)) * (number of args)
+    12                              <1> 	%endif
+    13                              <1> %endmacro
+     9                                  
+    10                                  
+    11                                  ;*********************************************************
+    12                                  ;               entry point
+    13                                  ;*********************************************************
+    14                                  
+    15                                  entry:
+    16 00000000 EB58                           jmp ipl        ; Initial Program Loader;
+    17                                  
+    18                                       ; BPB(BIOS Parameter Block)
+    19 00000002 90<rept>                		   times 90 - ($ - $$) db 0x90  ; 0x90 -> NOP
+    20                                  
+    21                                  ipl: ; IPL
+    22 0000005A FA                             cli                     ; disable interruption
+    23                                  
+    24 0000005B B80000                  			 mov ax, 0x0000
+    25 0000005E 8ED8                    			 mov ds, ax
+    26 00000060 8EC0                    			 mov es, ax
+    27 00000062 8ED0                    			 mov ss, ax
+    28 00000064 BC007C                  			 mov sp, BOOT_LOAD
+    29                                  
+    30 00000067 FB                      			 sti                     ; enable inerruption
+    31                                  
+    32 00000068 8816[8600]                     mov [BOOT.DRIVE], dl    ; store boot drive
+    33                                  
+    34                                         cdecl putc, word 'X'
+    34                              <1>  %rep %0 -1
+    34                              <1>  push %-1:-1
+    34                              <1>  %rotate -1
+    34                              <1>  %endrep
+    34 0000006C 6A58                <2>  push %-1:-1
+    34                              <2>  %rotate -1
+    34                              <1>  %rotate -1
+    34                              <1> 
+    34 0000006E E81700              <1>  call %1
+    34                              <1> 
+    34                              <1>  %if 1 < %0
+    34 00000071 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    34                              <1>  %endif
+    35                                         cdecl putc, word 'Y'
+    35                              <1>  %rep %0 -1
+    35                              <1>  push %-1:-1
+    35                              <1>  %rotate -1
+    35                              <1>  %endrep
+    35 00000074 6A59                <2>  push %-1:-1
+    35                              <2>  %rotate -1
+    35                              <1>  %rotate -1
+    35                              <1> 
+    35 00000076 E80F00              <1>  call %1
+    35                              <1> 
+    35                              <1>  %if 1 < %0
+    35 00000079 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    35                              <1>  %endif
+    36                                         cdecl putc, word 'Z'
+    36                              <1>  %rep %0 -1
+    36                              <1>  push %-1:-1
+    36                              <1>  %rotate -1
+    36                              <1>  %endrep
+    36 0000007C 6A5A                <2>  push %-1:-1
+    36                              <2>  %rotate -1
+    36                              <1>  %rotate -1
+    36                              <1> 
+    36 0000007E E80700              <1>  call %1
+    36                              <1> 
+    36                              <1>  %if 1 < %0
+    36 00000081 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    36                              <1>  %endif
+    37                                  
+    38 00000084 EBFE                           jmp $                   ; infinte loop
+    39                                  
+    40                                  ALIGN 2, db 0
+    41                                  BOOT:                 ; info related to boot drive
+    42 00000086 0000                    .DRIVE: dw 0          ; drive number
+    43                                  
+    44                                  ;*********************************************************
+    45                                  ;               modules
+    46                                  ;*********************************************************
+    47                                  %include "../modules/real/putc.s"
+     1                              <1> ;void putc(ch);
+     2                              <1> 
+     3                              <1> putc:
+     4                              <1>     ; stackframe
+     5                              <1> 											; 4 -> ch
+     6                              <1> 											; 2 -> IP
+     7 00000088 55                  <1> 			push bp         ; 0
+     8 00000089 89E5                <1> 			mov bp, sp
+     9                              <1> 
+    10                              <1> 		; store registers
+    11 0000008B 50                  <1> 			push ax
+    12 0000008C 53                  <1> 			push bx
+    13                              <1> 
+    14                              <1>     ; start function
+    15 0000008D B40E                <1> 			mov ah, 0x0E            ; tele type 1 charactor output
+    16 0000008F 8A4604              <1>       mov al, [bp + 4]        ; charactor to output
+    17 00000092 BB0000              <1> 			mov bx, 0x0000          ; page number & color
+    18 00000095 CD10                <1> 			int 0x10                ; video BIOS call
+    19                              <1> 
+    20                              <1>     ; return regisgters
+    21 00000097 5B                  <1> 		  pop bx
+    22 00000098 58                  <1> 			pop ax
+    23                              <1> 
+    24                              <1> 		; discard stackframe
+    25 00000099 89EC                <1> 		  mov sp, bp
+    26 0000009B 5D                  <1> 			pop bp
+    27                              <1> 
+    28 0000009C C3                  <1> 			ret
+    48                                  
+    49                                  
+    50                                  ;*********************************************************
+    51                                  ;               boot flag(first 512 byte)
+    52                                  ;*********************************************************
+    53 0000009D 00<rept>                       times 510 - ($ - $$) db 0x00
+    54 000001FE 55AA                           db 0x55, 0xAA
