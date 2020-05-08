@@ -1,0 +1,130 @@
+     1                                         BOOT_LOAD equ 0x7c00         ; where boot probram is loaded
+     2                                  			 ORG BOOT_LOAD                ; tell assembla where this program is loaded
+     3                                  
+     4                                  
+     5                                  ;*********************************************************
+     6                                  ;               macro
+     7                                  ;*********************************************************
+     8                                  %include "../include/macro.s"
+     1                              <1> %macro cdecl 1-*.no-list
+     2                              <1>   %rep %0 -1 
+     3                              <1> 	  push %{-1:-1}      ; last arg
+     4                              <1> 		%rotate -1         ; rotate to right ->
+     5                              <1> 	%endrep
+     6                              <1> 	%rotate -1           ; return args to as it used be
+     7                              <1> 
+     8                              <1> 	call %1
+     9                              <1> 
+    10                              <1> 	%if 1 < %0
+    11                              <1> 		add sp, (__BITS__ >> 3) * (%0 - 1)     ;dump stqck (16(2byte) or 32(4byte)) * (number of args)
+    12                              <1> 	%endif
+    13                              <1> %endmacro
+     9                                  
+    10                                  
+    11                                  ;*********************************************************
+    12                                  ;               entry point
+    13                                  ;*********************************************************
+    14                                  
+    15                                  entry:
+    16 00000000 EB58                           jmp ipl        ; Initial Program Loader;
+    17                                  
+    18                                       ; BPB(BIOS Parameter Block)
+    19 00000002 90<rept>                		   times 90 - ($ - $$) db 0x90  ; 0x90 -> NOP
+    20                                  
+    21                                  ipl: ; IPL
+    22 0000005A FA                             cli                     ; disable interruption
+    23                                  
+    24 0000005B B80000                  			 mov ax, 0x0000
+    25 0000005E 8ED8                    			 mov ds, ax
+    26 00000060 8EC0                    			 mov es, ax
+    27 00000062 8ED0                    			 mov ss, ax
+    28 00000064 BC007C                  			 mov sp, BOOT_LOAD
+    29                                  
+    30 00000067 FB                      			 sti                     ; enable inerruption
+    31                                  
+    32 00000068 8816[8400]                     mov [BOOT.DRIVE], dl    ; store boot drive
+    33                                  
+    34                                         cdecl puts, .s0
+    34                              <1>  %rep %0 -1
+    34                              <1>  push %-1:-1
+    34                              <1>  %rotate -1
+    34                              <1>  %endrep
+    34 0000006C 68[7700]            <2>  push %-1:-1
+    34                              <2>  %rotate -1
+    34                              <1>  %rotate -1
+    34                              <1> 
+    34 0000006F E81400              <1>  call %1
+    34                              <1> 
+    34                              <1>  %if 1 < %0
+    34 00000072 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    34                              <1>  %endif
+    35                                  
+    36 00000075 EBFE                           jmp $                   ; infinte loop
+    37                                  
+    38                                  
+    39                                  ;*********************************************************
+    40                                  ;               data
+    41                                  ;*********************************************************
+    42 00000077 426F6F74696E672E2E-     .s0:   db "Booting...", 0x0A, 0x0D, 0    ; 0x0A = LF, 0x0D = CR
+    42 00000080 2E0A0D00           
+    43                                  
+    44                                  ALIGN 2, db 0
+    45                                  BOOT:                 ; info related to boot drive
+    46 00000084 0000                    .DRIVE: dw 0          ; drive number
+    47                                  
+    48                                  
+    49                                  ;*********************************************************
+    50                                  ;               modules
+    51                                  ;*********************************************************
+    52                                  %include "../modules/real/puts.s"
+     1                              <1> ; void puts(str); str -> address of string. 0x00 is the end of a string
+     2                              <1> 
+     3                              <1> puts:
+     4                              <1>     ; stackframe
+     5                              <1> 											; 4 -> str
+     6                              <1> 											; 2 -> IP
+     7 00000086 55                  <1> 			push bp         ; 0
+     8 00000087 89E5                <1> 			mov bp, sp
+     9                              <1> 
+    10                              <1> 		; store registers
+    11 00000089 50                  <1> 			push ax
+    12 0000008A 53                  <1> 			push bx
+    13 0000008B 56                  <1> 			push si
+    14                              <1> 
+    15                              <1> 		; get arg
+    16 0000008C 8B7604              <1> 		  mov si, [bp + 4]
+    17                              <1> 
+    18                              <1>     ; start function
+    19 0000008F B40E                <1> 			mov ah, 0x0E            ; tele type 1 charactor output
+    20 00000091 BB0000              <1> 			mov bx, 0x0000          ; page number & color
+    21                              <1> 
+    22 00000094 FC                  <1> 			cld                     ; DF = 0; increment address
+    23                              <1> 
+    24                              <1> .L10:
+    25 00000095 AC                  <1>       lodsb                  ; AL = [SI]; SI += 1(byte)
+    26                              <1> 
+    27 00000096 3C00                <1>       cmp al, 0
+    28 00000098 7404                <1> 			je .E10
+    29                              <1> 
+    30 0000009A CD10                <1> 			int 0x10                ; video BIOS call
+    31 0000009C EBF7                <1> 			jmp .L10
+    32                              <1> 
+    33                              <1> .E10:
+    34                              <1>     ; return regisgters
+    35 0000009E 5B                  <1> 		  pop bx
+    36 0000009F 58                  <1> 			pop ax
+    37                              <1> 
+    38                              <1> 		; discard stackframe
+    39 000000A0 89EC                <1> 		  mov sp, bp
+    40 000000A2 5D                  <1> 			pop bp
+    41                              <1> 
+    42 000000A3 C3                  <1> 			ret
+    43                              <1> 
+    44                              <1> 
+    53                                  
+    54                                  
+    55                                  ;*********************************************************
+    56                                  ;               boot flag(first 512 byte)
+    57                                  ;*********************************************************
+    58 000000A4 00<rept>                       times 510 - ($ - $$) db 0x00
+    59 000001FE 55AA                           db 0x55, 0xAA
