@@ -1,0 +1,530 @@
+     1                                         BOOT_LOAD equ 0x7c00         ; where boot probram is loaded
+     2                                  			 ORG BOOT_LOAD                ; tell assembla where this program is loaded
+     3                                  
+     4                                  
+     5                                  ;*********************************************************
+     6                                  ;               macro
+     7                                  ;*********************************************************
+     8                                  %include "../include/macro.s"
+     1                              <1> %macro cdecl 1-*.no-list
+     2                              <1>   %rep %0 -1 
+     3                              <1> 	  push %{-1:-1}      ; last arg
+     4                              <1> 		%rotate -1         ; rotate to right ->
+     5                              <1> 	%endrep
+     6                              <1> 	%rotate -1           ; return args to as it used be
+     7                              <1> 
+     8                              <1> 	call %1
+     9                              <1> 
+    10                              <1> 	%if 1 < %0
+    11                              <1> 		add sp, (__BITS__ >> 3) * (%0 - 1)     ;dump stqck (16(2byte) or 32(4byte)) * (number of args)
+    12                              <1> 	%endif
+    13                              <1> %endmacro
+     9                                  
+    10                                  
+    11                                  ;*********************************************************
+    12                                  ;               entry point
+    13                                  ;*********************************************************
+    14                                  
+    15                                  entry:
+    16 00000000 EB58                           jmp ipl        ; Initial Program Loader;
+    17                                  
+    18                                       ; BPB(BIOS Parameter Block)
+    19 00000002 90<rept>                		   times 90 - ($ - $$) db 0x90  ; 0x90 -> NOP
+    20                                  
+    21                                  ipl: ; IPL
+    22 0000005A FA                             cli                     ; disable interruption
+    23                                  
+    24 0000005B B80000                  			 mov ax, 0x0000
+    25 0000005E 8ED8                    			 mov ds, ax
+    26 00000060 8EC0                    			 mov es, ax
+    27 00000062 8ED0                    			 mov ss, ax
+    28 00000064 BC007C                  			 mov sp, BOOT_LOAD
+    29                                  
+    30 00000067 FB                      			 sti                     ; enable inerruption
+    31                                  
+    32 00000068 8816[4801]                     mov [BOOT.DRIVE], dl    ; store boot drive
+    33                                  
+    34                                  
+    35                                  ;*********************************************************
+    36                                  ;               display string
+    37                                  ;*********************************************************
+    38                                         cdecl puts, .s0
+    38                              <1>  %rep %0 -1
+    38                              <1>  push %-1:-1
+    38                              <1>  %rotate -1
+    38                              <1>  %endrep
+    38 0000006C 68[3001]            <2>  push %-1:-1
+    38                              <2>  %rotate -1
+    38                              <1>  %rotate -1
+    38                              <1> 
+    38 0000006F E8D800              <1>  call %1
+    38                              <1> 
+    38                              <1>  %if 1 < %0
+    38 00000072 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    38                              <1>  %endif
+    39                                  
+    40                                  
+    41                                  ;*********************************************************
+    42                                  ;               display numbers
+    43                                  ;*********************************************************
+    44                                         cdecl itoa, 8086, .s1, 8, 10, 0b0001      ; 8086
+    44                              <1>  %rep %0 -1
+    44                              <1>  push %-1:-1
+    44                              <1>  %rotate -1
+    44                              <1>  %endrep
+    44 00000075 6A01                <2>  push %-1:-1
+    44                              <2>  %rotate -1
+    44 00000077 6A0A                <2>  push %-1:-1
+    44                              <2>  %rotate -1
+    44 00000079 6A08                <2>  push %-1:-1
+    44                              <2>  %rotate -1
+    44 0000007B 68[3D01]            <2>  push %-1:-1
+    44                              <2>  %rotate -1
+    44 0000007E 68961F              <2>  push %-1:-1
+    44                              <2>  %rotate -1
+    44                              <1>  %rotate -1
+    44                              <1> 
+    44 00000081 E8E400              <1>  call %1
+    44                              <1> 
+    44                              <1>  %if 1 < %0
+    44 00000084 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    44                              <1>  %endif
+    45                                         cdecl puts, .s1
+    45                              <1>  %rep %0 -1
+    45                              <1>  push %-1:-1
+    45                              <1>  %rotate -1
+    45                              <1>  %endrep
+    45 00000087 68[3D01]            <2>  push %-1:-1
+    45                              <2>  %rotate -1
+    45                              <1>  %rotate -1
+    45                              <1> 
+    45 0000008A E8BD00              <1>  call %1
+    45                              <1> 
+    45                              <1>  %if 1 < %0
+    45 0000008D 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    45                              <1>  %endif
+    46                                  
+    47                                         cdecl itoa, 8086, .s1, 8, 10, 0b0011      ; +8086
+    47                              <1>  %rep %0 -1
+    47                              <1>  push %-1:-1
+    47                              <1>  %rotate -1
+    47                              <1>  %endrep
+    47 00000090 6A03                <2>  push %-1:-1
+    47                              <2>  %rotate -1
+    47 00000092 6A0A                <2>  push %-1:-1
+    47                              <2>  %rotate -1
+    47 00000094 6A08                <2>  push %-1:-1
+    47                              <2>  %rotate -1
+    47 00000096 68[3D01]            <2>  push %-1:-1
+    47                              <2>  %rotate -1
+    47 00000099 68961F              <2>  push %-1:-1
+    47                              <2>  %rotate -1
+    47                              <1>  %rotate -1
+    47                              <1> 
+    47 0000009C E8C900              <1>  call %1
+    47                              <1> 
+    47                              <1>  %if 1 < %0
+    47 0000009F 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    47                              <1>  %endif
+    48                                         cdecl puts, .s1
+    48                              <1>  %rep %0 -1
+    48                              <1>  push %-1:-1
+    48                              <1>  %rotate -1
+    48                              <1>  %endrep
+    48 000000A2 68[3D01]            <2>  push %-1:-1
+    48                              <2>  %rotate -1
+    48                              <1>  %rotate -1
+    48                              <1> 
+    48 000000A5 E8A200              <1>  call %1
+    48                              <1> 
+    48                              <1>  %if 1 < %0
+    48 000000A8 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    48                              <1>  %endif
+    49                                  
+    50                                         cdecl itoa, -8086, .s1, 8, 10, 0b0001     ; -8086
+    50                              <1>  %rep %0 -1
+    50                              <1>  push %-1:-1
+    50                              <1>  %rotate -1
+    50                              <1>  %endrep
+    50 000000AB 6A01                <2>  push %-1:-1
+    50                              <2>  %rotate -1
+    50 000000AD 6A0A                <2>  push %-1:-1
+    50                              <2>  %rotate -1
+    50 000000AF 6A08                <2>  push %-1:-1
+    50                              <2>  %rotate -1
+    50 000000B1 68[3D01]            <2>  push %-1:-1
+    50                              <2>  %rotate -1
+    50 000000B4 686AE0              <2>  push %-1:-1
+    50                              <2>  %rotate -1
+    50                              <1>  %rotate -1
+    50                              <1> 
+    50 000000B7 E8AE00              <1>  call %1
+    50                              <1> 
+    50                              <1>  %if 1 < %0
+    50 000000BA 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    50                              <1>  %endif
+    51                                         cdecl puts, .s1
+    51                              <1>  %rep %0 -1
+    51                              <1>  push %-1:-1
+    51                              <1>  %rotate -1
+    51                              <1>  %endrep
+    51 000000BD 68[3D01]            <2>  push %-1:-1
+    51                              <2>  %rotate -1
+    51                              <1>  %rotate -1
+    51                              <1> 
+    51 000000C0 E88700              <1>  call %1
+    51                              <1> 
+    51                              <1>  %if 1 < %0
+    51 000000C3 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    51                              <1>  %endif
+    52                                  
+    53                                         cdecl itoa, -1, .s1, 8, 10, 0b0001        ; -1
+    53                              <1>  %rep %0 -1
+    53                              <1>  push %-1:-1
+    53                              <1>  %rotate -1
+    53                              <1>  %endrep
+    53 000000C6 6A01                <2>  push %-1:-1
+    53                              <2>  %rotate -1
+    53 000000C8 6A0A                <2>  push %-1:-1
+    53                              <2>  %rotate -1
+    53 000000CA 6A08                <2>  push %-1:-1
+    53                              <2>  %rotate -1
+    53 000000CC 68[3D01]            <2>  push %-1:-1
+    53                              <2>  %rotate -1
+    53 000000CF 6AFF                <2>  push %-1:-1
+    53                              <2>  %rotate -1
+    53                              <1>  %rotate -1
+    53                              <1> 
+    53 000000D1 E89400              <1>  call %1
+    53                              <1> 
+    53                              <1>  %if 1 < %0
+    53 000000D4 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    53                              <1>  %endif
+    54                                         cdecl puts, .s1
+    54                              <1>  %rep %0 -1
+    54                              <1>  push %-1:-1
+    54                              <1>  %rotate -1
+    54                              <1>  %endrep
+    54 000000D7 68[3D01]            <2>  push %-1:-1
+    54                              <2>  %rotate -1
+    54                              <1>  %rotate -1
+    54                              <1> 
+    54 000000DA E86D00              <1>  call %1
+    54                              <1> 
+    54                              <1>  %if 1 < %0
+    54 000000DD 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    54                              <1>  %endif
+    55                                  
+    56                                         cdecl itoa, -1, .s1, 8, 10, 0b0000        ; 65535
+    56                              <1>  %rep %0 -1
+    56                              <1>  push %-1:-1
+    56                              <1>  %rotate -1
+    56                              <1>  %endrep
+    56 000000E0 6A00                <2>  push %-1:-1
+    56                              <2>  %rotate -1
+    56 000000E2 6A0A                <2>  push %-1:-1
+    56                              <2>  %rotate -1
+    56 000000E4 6A08                <2>  push %-1:-1
+    56                              <2>  %rotate -1
+    56 000000E6 68[3D01]            <2>  push %-1:-1
+    56                              <2>  %rotate -1
+    56 000000E9 6AFF                <2>  push %-1:-1
+    56                              <2>  %rotate -1
+    56                              <1>  %rotate -1
+    56                              <1> 
+    56 000000EB E87A00              <1>  call %1
+    56                              <1> 
+    56                              <1>  %if 1 < %0
+    56 000000EE 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    56                              <1>  %endif
+    57                                         cdecl puts, .s1
+    57                              <1>  %rep %0 -1
+    57                              <1>  push %-1:-1
+    57                              <1>  %rotate -1
+    57                              <1>  %endrep
+    57 000000F1 68[3D01]            <2>  push %-1:-1
+    57                              <2>  %rotate -1
+    57                              <1>  %rotate -1
+    57                              <1> 
+    57 000000F4 E85300              <1>  call %1
+    57                              <1> 
+    57                              <1>  %if 1 < %0
+    57 000000F7 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    57                              <1>  %endif
+    58                                  
+    59                                         cdecl itoa, -1, .s1, 8, 16, 0b0000        ; FFFF
+    59                              <1>  %rep %0 -1
+    59                              <1>  push %-1:-1
+    59                              <1>  %rotate -1
+    59                              <1>  %endrep
+    59 000000FA 6A00                <2>  push %-1:-1
+    59                              <2>  %rotate -1
+    59 000000FC 6A10                <2>  push %-1:-1
+    59                              <2>  %rotate -1
+    59 000000FE 6A08                <2>  push %-1:-1
+    59                              <2>  %rotate -1
+    59 00000100 68[3D01]            <2>  push %-1:-1
+    59                              <2>  %rotate -1
+    59 00000103 6AFF                <2>  push %-1:-1
+    59                              <2>  %rotate -1
+    59                              <1>  %rotate -1
+    59                              <1> 
+    59 00000105 E86000              <1>  call %1
+    59                              <1> 
+    59                              <1>  %if 1 < %0
+    59 00000108 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    59                              <1>  %endif
+    60                                         cdecl puts, .s1
+    60                              <1>  %rep %0 -1
+    60                              <1>  push %-1:-1
+    60                              <1>  %rotate -1
+    60                              <1>  %endrep
+    60 0000010B 68[3D01]            <2>  push %-1:-1
+    60                              <2>  %rotate -1
+    60                              <1>  %rotate -1
+    60                              <1> 
+    60 0000010E E83900              <1>  call %1
+    60                              <1> 
+    60                              <1>  %if 1 < %0
+    60 00000111 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    60                              <1>  %endif
+    61                                  
+    62                                         cdecl itoa, 12, .s1, 8, 2, 0b0100         ; 00001100
+    62                              <1>  %rep %0 -1
+    62                              <1>  push %-1:-1
+    62                              <1>  %rotate -1
+    62                              <1>  %endrep
+    62 00000114 6A04                <2>  push %-1:-1
+    62                              <2>  %rotate -1
+    62 00000116 6A02                <2>  push %-1:-1
+    62                              <2>  %rotate -1
+    62 00000118 6A08                <2>  push %-1:-1
+    62                              <2>  %rotate -1
+    62 0000011A 68[3D01]            <2>  push %-1:-1
+    62                              <2>  %rotate -1
+    62 0000011D 6A0C                <2>  push %-1:-1
+    62                              <2>  %rotate -1
+    62                              <1>  %rotate -1
+    62                              <1> 
+    62 0000011F E84600              <1>  call %1
+    62                              <1> 
+    62                              <1>  %if 1 < %0
+    62 00000122 83C40A              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    62                              <1>  %endif
+    63                                         cdecl puts, .s1
+    63                              <1>  %rep %0 -1
+    63                              <1>  push %-1:-1
+    63                              <1>  %rotate -1
+    63                              <1>  %endrep
+    63 00000125 68[3D01]            <2>  push %-1:-1
+    63                              <2>  %rotate -1
+    63                              <1>  %rotate -1
+    63                              <1> 
+    63 00000128 E81F00              <1>  call %1
+    63                              <1> 
+    63                              <1>  %if 1 < %0
+    63 0000012B 83C402              <1>  add sp, (__BITS__ >> 3) * (%0 - 1)
+    63                              <1>  %endif
+    64                                  
+    65 0000012E EBFE                           jmp $                   ; infinte loop
+    66                                  
+    67                                  
+    68                                  ;*********************************************************
+    69                                  ;               data
+    70                                  ;*********************************************************
+    71 00000130 426F6F74696E672E2E-     .s0    db "Booting...", 0x0A, 0x0D, 0    ; 0x0A = LF, 0x0D = CR
+    71 00000139 2E0A0D00           
+    72 0000013D 20202020202020200A-     .s1    db "        ", 0x0A, 0x0D, 0    ; 0x0A = LF, 0x0D = CR
+    72 00000146 0D00               
+    73                                  
+    74                                  ALIGN 2, db 0
+    75                                  BOOT:                 ; info related to boot drive
+    76 00000148 0000                    .DRIVE: dw 0          ; drive number
+    77                                  
+    78                                  
+    79                                  ;*********************************************************
+    80                                  ;               modules
+    81                                  ;*********************************************************
+    82                                  %include "../modules/real/puts.s"
+     1                              <1> ; void puts(str); str -> address of string. 0x00 is the end of a string
+     2                              <1> 
+     3                              <1> puts:
+     4                              <1>     ; stackframe
+     5                              <1> 											; 4 -> str
+     6                              <1> 											; 2 -> IP
+     7 0000014A 55                  <1> 			push bp         ; 0
+     8 0000014B 89E5                <1> 			mov bp, sp
+     9                              <1> 
+    10                              <1> 		; store registers
+    11 0000014D 50                  <1> 			push ax
+    12 0000014E 53                  <1> 			push bx
+    13 0000014F 56                  <1> 			push si
+    14                              <1> 
+    15                              <1> 		; get arg
+    16 00000150 8B7604              <1> 		  mov si, [bp + 4]
+    17                              <1> 
+    18                              <1>     ; start function
+    19 00000153 B40E                <1> 			mov ah, 0x0E            ; tele type 1 charactor output
+    20 00000155 BB0000              <1> 			mov bx, 0x0000          ; page number & color
+    21                              <1> 
+    22 00000158 FC                  <1> 			cld                     ; DF = 0; increment address
+    23                              <1> 
+    24                              <1> .L10:
+    25 00000159 AC                  <1>       lodsb                  ; AL = [SI]; SI += 1(byte)
+    26                              <1> 
+    27 0000015A 3C00                <1>       cmp al, 0
+    28 0000015C 7404                <1> 			je .E10
+    29                              <1> 
+    30 0000015E CD10                <1> 			int 0x10                ; video BIOS call
+    31 00000160 EBF7                <1> 			jmp .L10
+    32                              <1> 
+    33                              <1> .E10:
+    34                              <1>     ; return regisgters
+    35 00000162 5B                  <1> 		  pop bx
+    36 00000163 58                  <1> 			pop ax
+    37                              <1> 
+    38                              <1> 		; discard stackframe
+    39 00000164 89EC                <1> 		  mov sp, bp
+    40 00000166 5D                  <1> 			pop bp
+    41                              <1> 
+    42 00000167 C3                  <1> 			ret
+    43                              <1> 
+    44                              <1> 
+    83                                  %include "../modules/real/itoa.s"
+     1                              <1> ; void itoa(num, buff, sise, radix, flag);
+     2                              <1> ;           num   -> number to convert
+     3                              <1> ;           buff  -> address of buffer to store
+     4                              <1> ;           size  -> size of buffer to store
+     5                              <1> ;           radix -> radix. fundamental number
+     6                              <1> ;           flags -> B0: treat value as signed var
+     7                              <1> ;                    B1: add sign +/-
+     8                              <1> ;                    B2: fill with 0
+     9                              <1> 
+    10                              <1> itoa:
+    11                              <1> ;*********************************************************
+    12                              <1> ;                 stackframe
+    13                              <1> ;*********************************************************
+    14                              <1>                                     ; 12 -> flag
+    15                              <1>                                     ; 10 -> radix
+    16                              <1>                                     ;  8 -> size
+    17                              <1>                                     ;  6 -> buff
+    18                              <1>                                     ;  4 -> num
+    19                              <1>                                     ;  2 -> IP
+    20 00000168 55                  <1>        push bp
+    21 00000169 89E5                <1> 			 mov bp, sp
+    22                              <1> 
+    23                              <1> 
+    24                              <1> ;*********************************************************
+    25                              <1> ;                 store registers
+    26                              <1> ;*********************************************************
+    27 0000016B 50                  <1>        push ax
+    28 0000016C 53                  <1>        push bx
+    29 0000016D 51                  <1>        push cx
+    30 0000016E 52                  <1>        push dx
+    31 0000016F 56                  <1>        push si
+    32 00000170 57                  <1>        push di
+    33                              <1> 
+    34                              <1> 
+    35                              <1> ;*********************************************************
+    36                              <1> ;                 get args
+    37                              <1> ;*********************************************************
+    38 00000171 8B4604              <1>        mov ax, [bp + 4]             ; val  = num
+    39 00000174 8B7606              <1>        mov si, [bp + 6]             ; dst  = buffer address
+    40 00000177 8B4E08              <1>        mov cx, [bp + 8]             ; size = buffer size
+    41                              <1> 
+    42 0000017A 89F7                <1> 			 mov di, si                   ; DI = tail of buffer
+    43 0000017C 01CF                <1> 			 add di, cx                   ; DI = dst + size
+    44 0000017E 4F                  <1> 			 dec di                       ; last index = dst + size - 1
+    45                              <1> 
+    46 0000017F 8B5E0C              <1> 			 mov bx, word [bp + 12]       ; flags
+    47                              <1> 
+    48                              <1> 
+    49                              <1> ;*********************************************************
+    50                              <1> ; decide it is singed or not, then set to display sign if value is smaller than 0
+    51                              <1> ;*********************************************************
+    52 00000182 F7C30100            <1>       test bx, 0b0001              ; if(flags & 0x01) B0: treat value as signed var
+    53 00000186 7408                <1> .10Q: je .10E                      ; {
+    54 00000188 83F800              <1>       cmp ax, 0                    ;   if(AX < 0)
+    55 0000018B 7D03                <1> .12Q: jge .12E                     ;   {
+    56 0000018D 83CB02              <1>       or bx, 0b0010                ;     flags ||= 0x02; B1: display sign +/-
+    57                              <1> .12E:                              ;   }
+    58                              <1> .10E:                              ; }
+    59                              <1> 
+    60                              <1> 
+    61                              <1> ;*********************************************************
+    62                              <1> ; see if sign is set to be displayed, then then add + or -
+    63                              <1> ;*********************************************************
+    64 00000190 F7C30200            <1>       test bx, 0b0010              ; if(flags & 0x02) B1: add sign +/-
+    65 00000194 7410                <1> .20Q: je .20E                      ; {
+    66 00000196 83F800              <1>       cmp ax, 0                    ;   if(AX < 0)
+    67 00000199 7D07                <1> .22Q:  jge .22F                    ;   {
+    68 0000019B F7D8                <1> 	    neg ax                       ;     val *= -1;
+    69 0000019D C6042D              <1> 			mov [si], byte '-'           ;     *dst = '-';
+    70 000001A0 EB03                <1> 			jmp .22E                     ;   } else {
+    71 000001A2 C6042B              <1> .22F: mov [si], byte '+'           ;     *dst = '+';
+    72                              <1>                                    ;   }
+    73 000001A5 49                  <1> .22E: dec cx                       ;   size--; because sign uses 1 byte
+    74                              <1> .20E:                              ; }
+    75                              <1> 
+    76                              <1> 
+    77                              <1> ;*********************************************************
+    78                              <1> ; convert to ASCII, iterate each number by dividing AX(num) by radix till AX is zero
+    79                              <1> ;*********************************************************
+    80 000001A6 8B5E0A              <1> 			mov bx, [bp + 10]            ; radix
+    81                              <1> 
+    82 000001A9 BA0000              <1> .30L: mov dx, 0
+    83 000001AC F7F3                <1>       div bx                       ; div(16bit) -> AX = DX:AX(32bit) / BX, DX = DX:AX(32bit) % BX
+    84                              <1> 
+    85 000001AE 89D6                <1> 			mov si, dx                   ; probably DX can't be used as index. need some research
+    86 000001B0 8A94[D801]          <1> 			mov dl, byte [.ascii + si]    ; DL = ASCII[DX];
+    87                              <1> 
+    88 000001B4 8815                <1> 			mov [di], dl                 ; *dst = DL; (DI = dst + size at first iteration)
+    89 000001B6 4F                  <1> 			dec di                       ; dst--;
+    90                              <1> 
+    91 000001B7 83F800              <1> 			cmp ax, 0
+    92 000001BA E0ED                <1> 			loopnz .30L                  ; while(AX);
+    93                              <1> .30E:
+    94                              <1> 
+    95                              <1> 
+    96                              <1> ;*********************************************************
+    97                              <1> ; fill empty bytes
+    98                              <1> ;*********************************************************
+    99 000001BC 83F900              <1> 			cmp cx, 0
+   100 000001BF 740D                <1> .40Q: je .40E
+   101 000001C1 B020                <1>       mov al, ' '
+   102 000001C3 837E0C04            <1> 			cmp [bp + 12], word 0b0100   ; if(flags & 0x04) | specifing "word" because the left operand is memory address(type is ambiguous)
+   103 000001C7 7502                <1> .42Q: jne .42E
+   104 000001C9 B030                <1>       mov al, '0'
+   105                              <1> 
+   106 000001CB FD                  <1> .42E: std                          ; DF = 1;(-)
+   107 000001CC F3AA                <1>       rep stosb                    ; while(--CX) *DI-- = AL;
+   108                              <1> .40E:
+   109                              <1> 
+   110                              <1> 
+   111                              <1> ;*********************************************************
+   112                              <1> ; return registers
+   113                              <1> ;*********************************************************
+   114 000001CE 5F                  <1>       pop di
+   115 000001CF 5E                  <1> 			pop si
+   116 000001D0 5A                  <1> 			pop dx
+   117 000001D1 59                  <1> 			pop cx
+   118 000001D2 5B                  <1> 			pop bx
+   119 000001D3 58                  <1> 			pop ax
+   120                              <1> 
+   121                              <1> 
+   122                              <1> ;*********************************************************
+   123                              <1> ; discard stackframe
+   124                              <1> ;*********************************************************
+   125 000001D4 89EC                <1>       mov sp, bp
+   126 000001D6 5D                  <1> 			pop bp
+   127 000001D7 C3                  <1> 			ret
+   128                              <1> 
+   129 000001D8 303132333435363738- <1> .ascii db "0123456789ABCDEF"        ; convertion table
+   129 000001E1 39414243444546      <1>
+    84                                  
+    85                                  
+    86                                  ;*********************************************************
+    87                                  ;               boot flag(first 512 byte)
+    88                                  ;*********************************************************
+    89 000001E8 00<rept>                       times 510 - ($ - $$) db 0x00
+    90 000001FE 55AA                           db 0x55, 0xAA
