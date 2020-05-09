@@ -1,4 +1,4 @@
-%macro cdecl 1-*.no-list
+%macro cdecl 1-*.nolist
   %rep %0 -1 
 	  push %{-1:-1}      ; last arg
 		%rotate -1         ; rotate to right ->
