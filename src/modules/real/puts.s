@@ -21,17 +21,18 @@ puts:
 
 			cld                     ; DF = 0; increment address
 
-.L10:
+.10L:
       lodsb                  ; AL = [SI]; SI += 1(byte)
 
       cmp al, 0
-			je .E10
+			je .10E
 
 			int 0x10                ; video BIOS call
-			jmp .L10
+			jmp .10L
 
-.E10:
+.10E:
     ; return regisgters
+		  pop si
 		  pop bx
 			pop ax
 
