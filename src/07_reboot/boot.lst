@@ -1,0 +1,161 @@
+     1                                         BOOT_LOAD equ 0x7c00         ; where boot probram is loaded
+     2                                  			 ORG BOOT_LOAD                ; tell assembla where this program is loaded
+     3                                  
+     4                                  
+     5                                  ;*********************************************************
+     6                                  ;               macro
+     7                                  ;*********************************************************
+     8                                  %include "../include/macro.s"
+     1                              <1> %macro cdecl 1-*.nolist
+     2                              <1>   %rep %0 -1 
+     3                              <1> 	  push %{-1:-1}      ; last arg
+     4                              <1> 		%rotate -1         ; rotate to right ->
+     5                              <1> 	%endrep
+     6                              <1> 	%rotate -1           ; return args to as it used be
+     7                              <1> 
+     8                              <1> 	call %1
+     9                              <1> 
+    10                              <1> 	%if 1 < %0
+    11                              <1> 		add sp, (__BITS__ >> 3) * (%0 - 1)     ;dump stqck (16(2byte) or 32(4byte)) * (number of args)
+    12                              <1> 	%endif
+    13                              <1> %endmacro
+     9                                  
+    10                                  
+    11                                  ;*********************************************************
+    12                                  ;               entry point
+    13                                  ;*********************************************************
+    14                                  
+    15                                  entry:
+    16 00000000 EB58                           jmp ipl        ; Initial Program Loader;
+    17                                  
+    18                                       ; BPB(BIOS Parameter Block)
+    19 00000002 90<rept>                		   times 90 - ($ - $$) db 0x90  ; 0x90 -> NOP
+    20                                  
+    21                                  ipl: ; IPL
+    22 0000005A FA                             cli                     ; disable interruption
+    23                                  
+    24 0000005B B80000                  			 mov ax, 0x0000
+    25 0000005E 8ED8                    			 mov ds, ax
+    26 00000060 8EC0                    			 mov es, ax
+    27 00000062 8ED0                    			 mov ss, ax
+    28 00000064 BC007C                  			 mov sp, BOOT_LOAD
+    29                                  
+    30 00000067 FB                      			 sti                     ; enable inerruption
+    31                                  
+    32 00000068 8816[9200]                     mov [BOOT.DRIVE], dl    ; store boot drive
+    33                                  
+    34                                  
+    35                                  ;*********************************************************
+    36                                  ;               display string
+    37                                  ;*********************************************************
+    38 0000006C 68[7A00]E8220083C4-            cdecl puts, .s0
+    38 00000074 02                 
+    39                                  
+    40                                  
+    41                                  ;*********************************************************
+    42                                  ;               reboot
+    43                                  ;*********************************************************
+    44 00000075 E83B00                         cdecl reboot
+    45                                  
+    46                                  
+    47 00000078 EBFE                           jmp $                   ; infinte loop
+    48                                  
+    49                                  
+    50                                  ;*********************************************************
+    51                                  ;               data
+    52                                  ;*********************************************************
+    53 0000007A 426F6F74696E672E2E-     .s0    db "Booting...", 0x0A, 0x0D, 0    ; 0x0A = LF, 0x0D = CR
+    53 00000083 2E0A0D00           
+    54 00000087 20202020202020200A-     .s1    db "        ", 0x0A, 0x0D, 0    ; 0x0A = LF, 0x0D = CR
+    54 00000090 0D00               
+    55                                  
+    56                                  ALIGN 2, db 0
+    57                                  BOOT:                 ; info related to boot drive
+    58 00000092 0000                    .DRIVE: dw 0          ; drive number
+    59                                  
+    60                                  
+    61                                  ;*********************************************************
+    62                                  ;               modules
+    63                                  ;*********************************************************
+    64                                  %include "../modules/real/puts.s"
+     1                              <1> ; void puts(str); str -> address of string. 0x00 is the end of a string
+     2                              <1> 
+     3                              <1> puts:
+     4                              <1>     ; stackframe
+     5                              <1> 											; 4 -> str
+     6                              <1> 											; 2 -> IP
+     7 00000094 55                  <1> 			push bp         ; 0
+     8 00000095 89E5                <1> 			mov bp, sp
+     9                              <1> 
+    10                              <1> 		; store registers
+    11 00000097 50                  <1> 			push ax
+    12 00000098 53                  <1> 			push bx
+    13 00000099 56                  <1> 			push si
+    14                              <1> 
+    15                              <1> 		; get arg
+    16 0000009A 8B7604              <1> 		  mov si, [bp + 4]
+    17                              <1> 
+    18                              <1>     ; start function
+    19 0000009D B40E                <1> 			mov ah, 0x0E            ; tele type 1 charactor output
+    20 0000009F BB0000              <1> 			mov bx, 0x0000          ; page number & color
+    21                              <1> 
+    22 000000A2 FC                  <1> 			cld                     ; DF = 0; increment address
+    23                              <1> 
+    24                              <1> .10L:
+    25 000000A3 AC                  <1>       lodsb                  ; AL = [SI]; SI += 1(byte)
+    26                              <1> 
+    27 000000A4 3C00                <1>       cmp al, 0
+    28 000000A6 7404                <1> 			je .10E
+    29                              <1> 
+    30 000000A8 CD10                <1> 			int 0x10                ; video BIOS call
+    31 000000AA EBF7                <1> 			jmp .10L
+    32                              <1> 
+    33                              <1> .10E:
+    34                              <1>     ; return regisgters
+    35 000000AC 5E                  <1> 		  pop si
+    36 000000AD 5B                  <1> 		  pop bx
+    37 000000AE 58                  <1> 			pop ax
+    38                              <1> 
+    39                              <1> 		; discard stackframe
+    40 000000AF 89EC                <1> 		  mov sp, bp
+    41 000000B1 5D                  <1> 			pop bp
+    42                              <1> 
+    43 000000B2 C3                  <1> 			ret
+    44                              <1> 
+    45                              <1> 
+    65                                  %include "../modules/real/reboot.s"
+     1                              <1> reboot:
+     2 000000B3 68[CF00]E8DBFF83C4- <1>          cdecl puts, .s0
+     2 000000BB 02                  <1>
+     3                              <1> 
+     4                              <1> 
+     5                              <1> ;*********************************************************
+     6                              <1> ;               wait for input
+     7                              <1> ;*********************************************************
+     8 000000BC B410                <1> .10L:    mov ah, 0x10     ; input : AH = 0x10, INT 0x16 -> AL = input
+     9 000000BE CD16                <1>          int 0x16
+    10                              <1> 
+    11 000000C0 3C20                <1> 				 cmp al, ' '       ; ZF == 0;
+    12 000000C2 75F8                <1> 				 jne .10L         ; while(!ZF);
+    13                              <1> 
+    14 000000C4 68[ED00]E8CAFF83C4- <1> 				 cdecl puts, .s1
+    14 000000CC 02                  <1>
+    15                              <1> 
+    16                              <1> 
+    17                              <1> ;*********************************************************
+    18                              <1> ;               reboot
+    19                              <1> ;*********************************************************
+    20 000000CD CD19                <1> 				 int 0x19         ; BIOS(0x19) -> reboot
+    21                              <1> 
+    22 000000CF 0A0D50757368205350- <1> .s0 db 0x0A, 0x0D, "Push SPACE key to reboot...", 0
+    22 000000D8 414345206B65792074- <1>
+    22 000000E1 6F207265626F6F742E- <1>
+    22 000000EA 2E2E00              <1>
+    23 000000ED 0A0D0A0D00          <1> .s1 db 0x0A, 0x0D, 0x0A, 0x0D, 0
+    66                                  
+    67                                  
+    68                                  ;*********************************************************
+    69                                  ;               boot flag(first 512 byte)
+    70                                  ;*********************************************************
+    71 000000F2 00<rept>                       times 510 - ($ - $$) db 0x00
+    72 000001FE 55AA                           db 0x55, 0xAA
