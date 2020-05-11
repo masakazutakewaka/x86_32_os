@@ -11,3 +11,11 @@
 		add sp, (__BITS__ >> 3) * (%0 - 1)     ;dump stqck (16(2byte) or 32(4byte)) * (number of args)
 	%endif
 %endmacro
+
+
+struc drive
+     .no     resw   1   ; drive number
+     .cyln   resw   1   ; cylinder
+     .head   resw   1   ; head
+     .sect   resw   1   ; sector
+endstruc
