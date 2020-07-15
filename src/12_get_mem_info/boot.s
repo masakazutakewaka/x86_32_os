@@ -1,4 +1,4 @@
-; segment is 0x0000 throught out the program. DS == ES == 0
+; segment is 0x0000 through out the program. DS == ES == 0
 
 ;*********************************************************
 ;               macro
@@ -172,6 +172,22 @@ stage_3:
     cdecl itoa, word [FONT.seg], .p1, 4, 16, 0b0100
     cdecl itoa, word [FONT.off], .p2, 4, 16, 0b0100
     cdecl puts, .s1
+
+
+;*********************************************************
+;               fetch memory info and display them
+;*********************************************************
+    cdecl get_mem_info, ACPI_DATA      ; get_mem_info(&ACPI_DATA)
+
+		mov eax, [ACPI_DATA.adr]
+		cmp eac, 0
+		je .10E
+
+		cdecl itoa, ax, p4, 4, 16, 0b0100  ; itoa(AX) // convert bottom address
+		shr eax, 16                        ; EAX >> 16
+		cdecl itoa, ax, p3, 4, 16, 0b0100  ; itoa(AX) // convert upper address
+
+		cdecl puts, .s2                    ; puts(.s2) // display address. why displaying .s2 means displaying address?
 
 
 ;*********************************************************
